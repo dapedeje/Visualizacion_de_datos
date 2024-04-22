@@ -1,0 +1,128 @@
+---
+title: "Proyecto final"
+author: "David Alejandro Pedroza De Jesús"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+Cargamos las librerias necesarias y borramos las varibles anteriores:
+
+```{r results='hide', warning=FALSE}
+rm(list=ls())#Esto para borrar las varibles anteriores
+packages = c("leaflet","tidyverse", "sf")
+package.check <- lapply(packages, FUN = function(x) {
+  if (!require(x, character.only = TRUE)) {
+    install.packages(x, dependencies = TRUE,
+                     repos='http://cran.rediris.es')
+  }
+  library(x, character.only = TRUE)
+})
+```
+
+Cargamos los datos para el proyecto, en este caso haremos uso de la función `st_read()` de paquete `sf`.
+
+```{r, results='hide'}
+Distritos <- st_read("Datos/districtes-distritos/") 
+Est_cond_at <- st_read("Datos/estacions-contaminacio-atmosferiques-estaciones-contaminacion-atmosfericas/")
+Puntos_Bicis <- st_read("Datos/punts-mesura-bicis-espires-electromagnetiques-puntos-medida-bicis-espiras-electr/")
+Punt_trafico <-st_read("Datos/punts-mesura-trafic-espires-electromagnetiques-puntos-medida-trafico-espiras-ele")
+IMD <- st_read("Datos/qlik_datos_imd_mobilitat_enero_2016-diciembre-2022_coord")
+Zonas_Verdes <- st_read("Datos/zonas-verdes")
+CONT <- read_delim("Datos/rvvcca.csv", 
+    delim = ";", escape_double = FALSE, col_types = cols(Fecha = col_date(format = "%Y-%m-%d"), 
+        `Fecha creacion` = col_date(format = "%Y-%m-%d")), 
+    trim_ws = TRUE)
+```
+
+Mapa de los puntos de valenBici
+
+```{r}
+Bici <- Puntos_Bicis %>%
+  leaflet() %>%
+  addProviderTiles("CartoDB") %>%
+  addCircleMarkers(data = Puntos_Bicis,
+                   radius = 1)
+Bici
+```
+
+Estaciones más contaminadas:
+
+```{r}
+
+m <- Est_cond_at %>%
+  leaflet() %>%  
+  addProviderTiles("CartoDB") 
+
+df_bueno <- Est_cond_at %>%
+  filter(calidad_amb == "Buena")
+df_RBueno <- Est_cond_at %>%
+  filter(calidad_amb == "Razonablemente Buena")
+
+
+m %>%
+  addCircleMarkers(data = Punt_trafico$geometry, radius = 1, color = "red") %>%
+  addCircleMarkers(data = df_bueno,
+                   color = "green",
+                   group = "Buena",
+                   radius = 1) %>%
+  addCircleMarkers(data = df_RBueno,
+                   color = "blue",
+                   group = "Razonablemente Buena",
+                   radius = 1) %>%
+  addLayersControl(overlayGroups = c("Buena","Razonablemente Buena"))
+  
+
+```
+```{r}
+df <- df_bueno %>%
+  filter(nombre == "Dr. Lluch") 
+```
+
+Mapa de districtos: 
+
+```{r}
+Distritos %>%
+  leaflet() %>%
+  addTiles()  %>%  
+  addPolygons(data = Distritos$geometry, 
+              label = Distritos$nombre)
+```
+
+Mapa de zonas verdes:
+
+```{r}
+ZV <- Zonas_Verdes %>%
+  leaflet() %>%
+  addTiles()  %>%  
+  addPolygons(data = Zonas_Verdes$geometry, label = Zonas_Verdes$nombre)
+```
+
+
+```{r}
+IMD %>%
+  leaflet() %>% 
+  addTiles() %>%
+  addCircleMarkers(data = IMD, radius = 1, 
+                   label = ~imd)
+```
+
+```{r}
+unique(IMD$punto_muest)
+Est_cond_at %>% 
+  ggplot(aes(x = calidad_amb)) +
+  geom_bar(fill = c("#00008B", "#8B2323"))
+```
+
+```{r}
+
+```
+
+
+
+
+
