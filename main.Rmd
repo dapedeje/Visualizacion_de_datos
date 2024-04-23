@@ -138,6 +138,13 @@ CONT %>%
   
 ```
 
+```{r}
+datos_inputados <- CONT %>%
+  mutate(across(where(is.numeric), ~if_else(is.na(.), mean(., na.rm = TRUE), .)))
+
+```
+
+
 
 
 
