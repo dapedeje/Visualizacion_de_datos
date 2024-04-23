@@ -118,9 +118,26 @@ Est_cond_at %>%
   geom_bar(fill = c("#00008B", "#8B2323"))
 ```
 
-```{r}
 
+```{r}
+columnas <- c("PM1","NO","NO2","NOx","O3","SO2","CO","NH3","C7H8")
+CONT %>%
+  pivot_longer(cols = columnas, names_to = "Variable", values_to = "Valor" ) %>%
+  ggplot(aes(x = Estacion, y = Valor, fill = Variable)) +
+  geom_bar(stat = "identity", fun = "sum", position = "dodge") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
 ```
+
+```{r}
+CONT %>%
+  pivot_longer(cols = columnas, names_to = "Variable", values_to = "Valor" ) %>% 
+  filter(Estacion == "Pista Silla") %>%
+  group_by(Variable) %>%
+  summarise(total = sum(Valor, na.rm = T)) %>%
+  arrange(desc(total))
+  
+```
+
 
 
 
