@@ -120,7 +120,7 @@ Est_cond_at %>%
 
 
 ```{r}
-columnas <- c("PM1","NO","NO2","NOx","O3","SO2","CO","NH3","C7H8")
+columnas <- c("NO","NO2","NOx","O3","SO2","CO","NH3","C7H8")
 CONT %>%
   pivot_longer(cols = columnas, names_to = "Variable", values_to = "Valor" ) %>%
   ggplot(aes(x = Estacion, y = Valor, fill = Variable)) +
