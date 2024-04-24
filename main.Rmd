@@ -38,6 +38,8 @@ CONT <- read_delim("Datos/rvvcca.csv",
     delim = ";", escape_double = FALSE, col_types = cols(Fecha = col_date(format = "%Y-%m-%d"), 
         `Fecha creacion` = col_date(format = "%Y-%m-%d")), 
     trim_ws = TRUE)
+Silla<- read_delim("Datos/dades-de-lestacio-de-contaminacio-atmosferica-de-pista-de-silla-4a.csv", 
+    delim = ";", escape_double = FALSE, trim_ws = TRUE)
 ```
 
 Mapa de los puntos de valenBici
@@ -184,6 +186,27 @@ imd_group <- IMD %>%
 ```
 
 
+
+```{r}
+
+Est_cond_at %>%
+  ggplot(aes(x = no2, y = o3)) +
+  geom_point(col = "red")
+
+Est_cond_at %>%
+  ggplot(aes(x = no2, y = co)) +
+  geom_point(col = "red")
+
+```
+
+```{r}
+names(Silla) <- c("Fecha","PM2.5","Xileno", "SO2",
+                  "CO","NO","NO2","PM10","NOx","Ozono","Tolueno", 
+                  "Benceno","Ruido")
+Silla %>%
+  ggplot(aes(x = Fecha, y = NO2)) +
+  geom_line()
+```
 
 
 
