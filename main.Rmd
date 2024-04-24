@@ -33,6 +33,7 @@ Puntos_Bicis <- st_read("Datos/punts-mesura-bicis-espires-electromagnetiques-pun
 Punt_trafico <-st_read("Datos/punts-mesura-trafic-espires-electromagnetiques-puntos-medida-trafico-espiras-ele")
 IMD <- st_read("Datos/qlik_datos_imd_mobilitat_enero_2016-diciembre-2022_coord")
 Zonas_Verdes <- st_read("Datos/zonas-verdes")
+Zonas_imd_V <- st_read("Resultados/Zonas_verder_imd/")
 CONT <- read_delim("Datos/rvvcca.csv", 
     delim = ";", escape_double = FALSE, col_types = cols(Fecha = col_date(format = "%Y-%m-%d"), 
         `Fecha creacion` = col_date(format = "%Y-%m-%d")), 
@@ -100,6 +101,7 @@ ZV <- Zonas_Verdes %>%
   leaflet() %>%
   addTiles()  %>%  
   addPolygons(data = Zonas_Verdes$geometry, label = Zonas_Verdes$nombre)
+ZV
 ```
 
 
@@ -143,6 +145,48 @@ datos_inputados <- CONT %>%
   mutate(across(where(is.numeric), ~if_else(is.na(.), mean(., na.rm = TRUE), .)))
 
 ```
+
+Podemos ver que ha hemos tenido cerca de las zonas verdes una tendecia a que poco a poco esta bajando:
+
+```{r}
+
+Zonas_imd_V %>%
+  group_by(ao) %>%
+  summarise(total_imd = sum(imd_num)) %>%
+  ggplot(aes(x = ao, y = total_imd)) +
+  geom_point(color = "blue")
+```
+Vemos que lo mismo que ocurre lo mismo general:
+```{r}
+IMD %>%
+  mutate(imd_num = as.numeric(gsub(" ", "", imd))) %>%
+  group_by(ao) %>%
+  summarise(total_imd = sum(imd_num)) %>%
+  drop_na() %>%
+  ggplot(aes(x = ao, y = total_imd)) +
+  geom_point(color = "blue")
+```
+```{r}
+imd_group <- IMD %>%
+  mutate(imd_num = as.numeric(gsub(" ", "", imd))) %>%
+  group_by(punto_muest) %>%
+  summarise(total_imd = sum(imd_num)) %>%
+  drop_na() %>%
+  filter(punto_muest !="Avda. Cataluña")
+  
+  imd_group %>%
+  leaflet() %>% 
+  addTiles() %>%
+  addCircleMarkers(data = imd_group$geometry, 
+              label = imd_group$total_imd, 
+              radius = 2)
+
+```
+
+
+
+
+
 
 
 
