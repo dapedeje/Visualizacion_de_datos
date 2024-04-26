@@ -10,6 +10,21 @@ runtime: shiny
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+Cargamos las librerias necesarias y borramos las varibles anteriores:
+
+```{r results='hide', warning=FALSE}
+rm(list=ls())#Esto para borrar las varibles anteriores
+packages = c("leaflet","tidyverse", "sf", "shiny", "shinythemes", "lubridate")
+package.check <- lapply(packages, FUN = function(x) {
+  if (!require(x, character.only = TRUE)) {
+    install.packages(x, dependencies = TRUE,
+                     repos='http://cran.rediris.es')
+  }
+  library(x, character.only = TRUE)
+})
+```
+
+
 Aquí importamos los datos:
 ```{r}
 Distritos <- st_read("Datos/districtes-distritos/") 
@@ -25,48 +40,88 @@ CONT <- read_delim("Datos/rvvcca.csv",
     trim_ws = TRUE)
 Silla<- read_delim("Datos/dades-de-lestacio-de-contaminacio-atmosferica-de-pista-de-silla-4a.csv", 
     delim = ";", escape_double = FALSE, trim_ws = TRUE)
+names(Silla) <-c("Fecha","PM2.5","Xileno","SO2","CO","NO","NO2" ,   
+ "PM10","NOx", "Ozono","Tolueno","Benceno","Ruido")
+Coropletas <- st_read("Resultados/Coropletas//")
 ```
-
-
-
-Cargamos las librerias necesarias y borramos las varibles anteriores:
-
-```{r results='hide', warning=FALSE}
-rm(list=ls())#Esto para borrar las varibles anteriores
-packages = c("leaflet","tidyverse", "sf", "shiny", "shinythemes")
-package.check <- lapply(packages, FUN = function(x) {
-  if (!require(x, character.only = TRUE)) {
-    install.packages(x, dependencies = TRUE,
-                     repos='http://cran.rediris.es')
-  }
-  library(x, character.only = TRUE)
-})
-```
-
 
 ```{r}
 ui <- fluidPage(
-  navbarPage(title = "Proyecto final visizualización",
-             theme = shinytheme("superhero"),
-             tabPanel("Mapas de coropletas",
-                      sidebarLayout(
-                        sidebarPanel(selectInput("compuesto", 
-                                                "Seleccione el compuesto a analizar", 
-                                                choices = c("no2","o3","co"))),
-                        mainPanel(
-                          plotOutput("grafico_coropletas")
-                        )
-                        )
-              tabPanel("Gráfico de pista de silla", "Hola")
-                      
-                
-                      )
-             )
-             
-                )
+  navbarPage(
+    title = "Proyecto final visualización",
+    theme = shinytheme("superhero"),
+    tabPanel(
+      "Mapas de coropletas",
+      sidebarLayout(
+        sidebarPanel(
+          selectInput("compuesto", 
+                      "Seleccione el compuesto a analizar", 
+                      choices = c("NO2_mean" = "NO2_mean",
+                                  "O3_mean" = "O3_mean",
+                                  "CO_mean" = "CO_mean"))
+        ),
+        mainPanel(
+          leafletOutput("grafico_coropletas")
+        )
+      )
+    ),
+    tabPanel(
+      "Gráfico del archivo extra",
+      sidebarLayout(
+        sidebarPanel(
+          selectInput("Parametro1", 
+                      "Seleccione el compuesto a analizar", 
+                      choices = names(Silla)[2:length(Silla)]),
+          sliderInput("peri", "Inserte el año", 
+                    min = min(year(Silla$Fecha)), 
+                    max = max(year(Silla$Fecha)),
+                    value = c(2019 , 2023))
+        ),
+        mainPanel(
+          plotOutput("Serie")
+        )
+      )
+    )
+  )
+)
 
-server <- function(input, output) {}
+server <- function(input, output) {
+  data_color <- reactive({
+    Coropletas %>%
+      select(geometry,input$compuesto)
+  })
+  output$grafico_coropletas <- leaflet::renderLeaflet({
+    
+    pal <- colorNumeric(palette = "YlOrRd", domain = Coropletas$input$compuesto)
+    data_color() %>%
+      leaflet() %>%
+      addTiles() %>%
+      addPolygons(fillColor = ~pal(get(input$compuesto)),
+              fillOpacity = 0.8, 
+              color = "#BDBDC3", 
+              weight = 1, 
+              popup = ~get(input$compuesto))
+  })
+  output$Serie <- renderPlot({
+    Silla %>%
+      mutate(anyo = year(Fecha)) %>%
+      filter(anyo >= input$peri[1], anyo <= input$peri[2]) %>%
+      group_by(anyo) %>%
+      summarise(Total = sum(get(input$Parametro1), na.rm = T)) %>%
+      ggplot(aes(x = anyo, y = Total)) +
+      geom_line(col ="blue")
+  })
+}
 shinyApp(ui = ui, server = server)
 ```
+
+```{r}
+Silla %>%
+      filter(year(Fecha) >= 2014 & year(Fecha) <= 2023)
+```
+
+
+
+
 
 
