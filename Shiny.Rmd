@@ -1,0 +1,140 @@
+---
+title: "Shiny"
+author: "David Alejandro Pedroza De Jesús"
+date: "`r Sys.Date()`"
+output: html_document
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Cargamos las librerias necesarias y borramos las varibles anteriores:
+
+```{r results='hide', warning=FALSE}
+rm(list=ls())#Esto para borrar las varibles anteriores
+packages = c("leaflet","tidyverse", "sf", "shiny", "shinythemes", "lubridate")
+package.check <- lapply(packages, FUN = function(x) {
+  if (!require(x, character.only = TRUE)) {
+    install.packages(x, dependencies = TRUE,
+                     repos='http://cran.rediris.es')
+  }
+  library(x, character.only = TRUE)
+})
+```
+
+
+Aquí importamos los datos:
+```{r}
+Distritos <- st_read("Datos/districtes-distritos/") 
+Est_cond_at <- st_read("Datos/estacions-contaminacio-atmosferiques-estaciones-contaminacion-atmosfericas/")
+Puntos_Bicis <- st_read("Datos/punts-mesura-bicis-espires-electromagnetiques-puntos-medida-bicis-espiras-electr/")
+Punt_trafico <-st_read("Datos/punts-mesura-trafic-espires-electromagnetiques-puntos-medida-trafico-espiras-ele")
+IMD <- st_read("Datos/qlik_datos_imd_mobilitat_enero_2016-diciembre-2022_coord")
+Zonas_Verdes <- st_read("Datos/zonas-verdes")
+Zonas_imd_V <- st_read("Resultados/Zonas_verder_imd/")
+CONT <- read_delim("Datos/rvvcca.csv", 
+    delim = ";", escape_double = FALSE, col_types = cols(Fecha = col_date(format = "%Y-%m-%d"), 
+        `Fecha creacion` = col_date(format = "%Y-%m-%d")), 
+    trim_ws = TRUE)
+lineas_distritos <- st_read("Datos/lineas-distrito/")
+Silla<- read_delim("Datos/dades-de-lestacio-de-contaminacio-atmosferica-de-pista-de-silla-4a.csv", 
+    delim = ";", escape_double = FALSE, trim_ws = TRUE)
+names(Silla) <-c("Fecha","PM2.5","Xileno","SO2","CO","NO","NO2" ,   
+ "PM10","NOx", "Ozono","Tolueno","Benceno","Ruido")
+Coropletas <- st_read("Resultados/Coropletas//")
+```
+
+```{r}
+ui <- fluidPage(
+  navbarPage(
+    title = "Proyecto final visualización",
+    theme = shinytheme("yeti"),
+    tabPanel(
+      "Mapas de coropletas",
+      sidebarLayout(
+        sidebarPanel(
+          selectInput("compuesto", 
+                      "Seleccione el compuesto a analizar", 
+                      choices = c("NO2_mean" = "NO2_mean",
+                                  "O3_mean" = "O3_mean",
+                                  "CO_mean" = "CO_mean"))
+        ),
+        mainPanel(
+          leafletOutput("grafico_coropletas")
+        )
+      )
+    ),
+    tabPanel(
+      "Contaminación en zona concreta.",
+      sidebarLayout(
+        sidebarPanel(
+          selectInput("Parametro1", 
+                      "Seleccione el compuesto a analizar", 
+                      choices = names(Silla)[2:length(Silla)]),
+          sliderInput("peri", "Inserte el año", 
+                    min = min(year(Silla$Fecha)), 
+                    max = max(year(Silla$Fecha)),
+                    value = c(2019 , 2023))
+        ),
+        mainPanel(
+          plotOutput("Serie")
+        )
+      )
+    )
+  )
+)
+
+server <- function(input, output) {
+  data_color <- reactive({
+    Coropletas %>%
+      select(geometry,input$compuesto)
+  })
+  output$grafico_coropletas <- leaflet::renderLeaflet({
+    
+    pal <- colorNumeric(palette = "YlOrRd", domain = Coropletas$input$compuesto)
+    data_color() %>%
+      leaflet() %>%
+      addTiles() %>%
+      addPolygons(fillColor = ~pal(get(input$compuesto)),
+              fillOpacity = 0.8, 
+              color = "#BDBDC3", 
+              weight = 1,
+              label = Distritos$nombre,
+              popup = ~get(input$compuesto)) %>%
+      addLegend(pal = pal, 
+                values = ~get(input$compuesto), 
+                title = input$compuesto, 
+                opacity = 0.8) %>%
+      addPolylines(data = lineas_distritos$geometry,
+                   weight = 0.5,
+                   color="black"
+                   ) 
+  })
+  output$Serie <- renderPlot({
+    Silla %>%
+      mutate(anyo = year(Fecha)) %>%
+      filter(anyo >= input$peri[1], anyo <= input$peri[2]) %>%
+      group_by(anyo) %>%
+      summarise(Total = sum(get(input$Parametro1), na.rm = T)) %>%
+      ggplot(aes(x = anyo, y = Total)) +
+      geom_line(col ="blue")
+  })
+}
+shinyApp(ui = ui, server = server)
+```
+
+```{r}
+Silla %>%
+      filter(year(Fecha) >= 2014 & year(Fecha) <= 2023)
+```
+
+
+
+
+
+
+
+
+
