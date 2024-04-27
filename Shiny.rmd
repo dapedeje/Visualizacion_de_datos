@@ -52,55 +52,82 @@ ui <- fluidPage(
     theme = shinytheme("yeti"),
     tabPanel(
       "Mapas de coropletas",
-      sidebarLayout(
-        sidebarPanel(
-          selectInput("compuesto", 
-                      "Seleccione el compuesto a analizar", 
-                      choices = c("NO2_mean" = "NO2_mean",
-                                  "O3_mean" = "O3_mean",
-                                  "CO_mean" = "CO_mean"))
-        ),
-        mainPanel(
-          leafletOutput("grafico_coropletas")
+      sidebarLayout(sidebarPanel(
+        selectInput(
+          "compuesto",
+          "Seleccione el compuesto a analizar",
+          choices = c(
+            "NO2_mean" = "NO2_mean",
+            "O3_mean" = "O3_mean",
+            "CO_mean" = "CO_mean"
+          )
         )
-      )
+      ),
+      mainPanel(leafletOutput(
+        "grafico_coropletas"
+      )))
     ),
     tabPanel(
       "Conatainación en zona concreta.",
       sidebarLayout(
         sidebarPanel(
-          selectInput("Parametro1", 
-                      "Seleccione el compuesto a analizar", 
-                      choices = names(Silla)[2:length(Silla)]),
-          sliderInput("peri", "Inserte el año", 
-                    min = min(year(Silla$Fecha)), 
-                    max = max(year(Silla$Fecha)),
-                    value = c(2019 , 2023))
+          selectInput(
+            "Parametro1",
+            "Seleccione el compuesto a analizar",
+            choices = names(Silla)[2:length(Silla)]
+          ),
+          sliderInput(
+            "peri",
+            "Inserte el año",
+            min = min(year(Silla$Fecha)),
+            max = max(year(Silla$Fecha)),
+            value = c(2019 , 2023)
+          )
         ),
-        mainPanel(
-          plotOutput("Serie")
-        )
+        mainPanel(plotOutput("Serie"))
       )
-    )
+    ),
+    tabPanel("Graficos de puntos",
+      sidebarLayout(
+        sidebarPanel(
+          selectInput("x", "Seleccione una variable para el eje x", 
+                      choices = c("so2","no2","o3","co","pm10","pm25")),
+          selectInput("y", "Seleccione una variable para el eje y", 
+                      choices = c("so2","no2","o3","co","pm10","pm25"))
+          ),
+        
+        mainPanel(plotOutput("Punt"))
+        
+
   )
+)
+)
 )
 
 server <- function(input, output) {
   data_color <- reactive({
     Coropletas %>%
-      select(geometry,input$compuesto)
+      select(geometry, input$compuesto)
   })
+  
+  Graf <- reactive({
+    Coropletas %>%
+      select(geometry, input$compuesto)
+  })
+  
   output$grafico_coropletas <- leaflet::renderLeaflet({
-    
-    pal <- colorNumeric(palette = "YlOrRd", domain = Coropletas$input$compuesto)
+    pal <-
+      colorNumeric(palette = "YlOrRd", domain = Coropletas$input$compuesto)
     data_color() %>%
       leaflet() %>%
       addTiles() %>%
-      addPolygons(fillColor = ~pal(get(input$compuesto)),
-              fillOpacity = 0.8, 
-              color = "#BDBDC3", 
-              weight = 1, 
-              popup = ~get(input$compuesto))
+      addPolygons(
+        fillColor = ~ pal(get(input$compuesto)),
+        fillOpacity = 0.8,
+        color = "#BDBDC3",
+        weight = 1,
+        popup = ~ get(input$compuesto)
+      )
   })
   output$Serie <- renderPlot({
     Silla %>%
@@ -109,15 +136,24 @@ server <- function(input, output) {
       group_by(anyo) %>%
       summarise(Total = sum(get(input$Parametro1), na.rm = T)) %>%
       ggplot(aes(x = anyo, y = Total)) +
-      geom_line(col ="blue")
+      geom_line(col = "blue")
   })
+  
+  output$Punt <- renderPlot({
+    Est_cond_at %>%
+    ggplot(aes_string(x = input$x, y = input$y)) +
+    geom_point()
+    
+  })
+  
 }
 shinyApp(ui = ui, server = server)
 ```
 
 ```{r}
-Silla %>%
-      filter(year(Fecha) >= 2014 & year(Fecha) <= 2023)
+    Est_cond_at %>%
+    ggplot(aes_string(x = "no2", y = "co")) +
+    geom_point(aes(col = calidad_amb))
 ```
 
 
