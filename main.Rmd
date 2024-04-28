@@ -227,11 +227,17 @@ names(Silla) <- c("Fecha","PM2.5","Xileno", "SO2",
                   "Benceno","Ruido")
  
 Silla %>%
+  ggplot(aes(x = Fecha, y =NO2)) +
+  geom_line(col = "blue") +
+  labs(title = "Reducción de Polución de Dióxido de Nitrógeno en la Pista Silla esta decada",y = "Dióxido de Nitrógeno (NO2)")
+
+
+Silla %>%
   mutate(anyo = year(Fecha)) %>%
   group_by(anyo) %>%
   summarise(Total = sum(NO2, na.rm = T)) %>%
   ggplot(aes(x = anyo, y =Total)) +
-  geom_line() +
+  geom_line(col = "blue") +
   labs(title = "Reducción de Polución de Dióxido de Nitrógeno en la Pista Silla esta decada",y = "Dióxido de Nitrógeno (NO2)") + xlab("Año")
 
 ```
