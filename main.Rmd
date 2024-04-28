@@ -162,7 +162,7 @@ Zonas_imd_V %>%
   geom_point(color = "blue") +
   labs(title = "Relación entre Intensidad Media Diaria (IMD) y Año",
        x = "Año",
-       y = "Total de Intensidad Media Diaria (IMD)")
+       y = "(IMD)")
 
 ```
 Vemos que lo mismo que ocurre lo mismo general:
