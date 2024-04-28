@@ -43,6 +43,7 @@ Silla<- read_delim("Datos/dades-de-lestacio-de-contaminacio-atmosferica-de-pista
 names(Silla) <-c("Fecha","PM2.5","Xileno","SO2","CO","NO","NO2" ,   
  "PM10","NOx", "Ozono","Tolueno","Benceno","Ruido")
 Coropletas <- st_read("Resultados/Coropletas//")
+lineas_distritos <- st_read("Datos/lineas-distrito/")
 ```
 
 ```{r}
