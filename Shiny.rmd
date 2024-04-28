@@ -121,7 +121,8 @@ server <- function(input, output) {
 
     pal <- colorNumeric(palette = "YlOrRd", domain = Coropletas$input$compuesto)
     data_color() %>%
-      leaflet() %>%
+      leaflet(options = 
+                list(minZoom = 10.5, maxZoom = 18,setViewLimit= c(-0.37739, 39.46975))) %>%
       addTiles() %>%
       addPolygons(fillColor = ~pal(get(input$compuesto)),
               fillOpacity = 0.8, 
@@ -136,7 +137,12 @@ server <- function(input, output) {
       addPolylines(data = lineas_distritos$geometry,
                    weight = 0.5,
                    color="black"
-                   ) 
+                   ) %>%
+       setMaxBounds( lng1 = -0.564
+                , lat1 = 39.2
+                , lng2 = 0
+                , lat2 = 39.7 )
+
   })
   output$Serie <- renderPlot({
     Silla %>%
@@ -158,9 +164,6 @@ server <- function(input, output) {
 }
 shinyApp(ui = ui, server = server)
 ```
-
-
-
 
 
 
