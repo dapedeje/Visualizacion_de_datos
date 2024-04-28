@@ -52,6 +52,7 @@ ui <- fluidPage(
     theme = shinytheme("yeti"),
     tabPanel(
       "Mapas de coropletas",
+      h1("Mapas de coropletas de la media de cada districto."),
       sidebarLayout(sidebarPanel(
         selectInput(
           "compuesto",
@@ -69,6 +70,7 @@ ui <- fluidPage(
     ),
     tabPanel(
       "Conatainación en zona concreta.",
+      h1("Contaminación de zonas de silla"),
       sidebarLayout(
         sidebarPanel(
           selectInput(
@@ -88,6 +90,7 @@ ui <- fluidPage(
       )
     ),
     tabPanel("Graficos de puntos",
+            h1("Relación entre los compuestos"),
       sidebarLayout(
         sidebarPanel(
           selectInput("x", "Seleccione una variable para el eje x", 
@@ -97,8 +100,6 @@ ui <- fluidPage(
           ),
         
         mainPanel(plotOutput("Punt"))
-        
-
   )
 )
 )
@@ -116,18 +117,25 @@ server <- function(input, output) {
   })
   
   output$grafico_coropletas <- leaflet::renderLeaflet({
-    pal <-
-      colorNumeric(palette = "YlOrRd", domain = Coropletas$input$compuesto)
+
+    pal <- colorNumeric(palette = "YlOrRd", domain = Coropletas$input$compuesto)
     data_color() %>%
       leaflet() %>%
       addTiles() %>%
-      addPolygons(
-        fillColor = ~ pal(get(input$compuesto)),
-        fillOpacity = 0.8,
-        color = "#BDBDC3",
-        weight = 1,
-        popup = ~ get(input$compuesto)
-      )
+      addPolygons(fillColor = ~pal(get(input$compuesto)),
+              fillOpacity = 0.8, 
+              color = "#BDBDC3", 
+              weight = 1,
+              label = Distritos$nombre,
+              popup = ~get(input$compuesto)) %>%
+      addLegend(pal = pal, 
+                values = ~get(input$compuesto), 
+                title = input$compuesto, 
+                opacity = 0.8) %>%
+      addPolylines(data = lineas_distritos$geometry,
+                   weight = 0.5,
+                   color="black"
+                   ) 
   })
   output$Serie <- renderPlot({
     Silla %>%
@@ -150,11 +158,6 @@ server <- function(input, output) {
 shinyApp(ui = ui, server = server)
 ```
 
-```{r}
-    Est_cond_at %>%
-    ggplot(aes_string(x = "no2", y = "co")) +
-    geom_point(aes(col = calidad_amb))
-```
 
 
 
