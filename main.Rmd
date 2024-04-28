@@ -1,6 +1,6 @@
 ---
 title: "Proyecto final"
-author: "David Alejandro Pedroza De Jesús"
+author: "David Alejandro Pedroza De Jesús & Joel Ezequiel Vicente & Ruben Peña Sanchez"
 date: "`r Sys.Date()`"
 output: html_document
 ---
@@ -119,7 +119,8 @@ IMD %>%
 unique(IMD$punto_muest)
 Est_cond_at %>% 
   ggplot(aes(x = calidad_amb)) +
-  geom_bar(fill = c("#00008B", "#8B2323"))
+  geom_bar(fill = c("#00008B", "#8B2323")) +
+  labs(title = "Distribución de la Calidad del Aire",  x = "Calidad del Aire", y = "Numero de Estaciones ") 
 ```
 
 
@@ -129,7 +130,8 @@ CONT %>%
   pivot_longer(cols = columnas, names_to = "Variable", values_to = "Valor" ) %>%
   ggplot(aes(x = Estacion, y = Valor, fill = Variable)) +
   geom_bar(stat = "identity", fun = "sum", position = "dodge") +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  labs(title = "Contaminación por Elemento y Estación",fill = "Elemento")
 ```
 
 ```{r}
@@ -152,22 +154,35 @@ Podemos ver que ha hemos tenido cerca de las zonas verdes una tendecia a que poc
 
 ```{r}
 
+
 Zonas_imd_V %>%
   group_by(ao) %>%
   summarise(total_imd = sum(imd_num)) %>%
   ggplot(aes(x = ao, y = total_imd)) +
-  geom_point(color = "blue")
+  geom_point(color = "blue") +
+  labs(title = "Relación entre Intensidad Media Diaria (IMD) y Año",
+       x = "Año",
+       y = "Total de Intensidad Media Diaria (IMD)")
+
 ```
 Vemos que lo mismo que ocurre lo mismo general:
 ```{r}
+
+
 IMD %>%
   mutate(imd_num = as.numeric(gsub(" ", "", imd))) %>%
   group_by(ao) %>%
   summarise(total_imd = sum(imd_num)) %>%
   drop_na() %>%
   ggplot(aes(x = ao, y = total_imd)) +
-  geom_point(color = "blue")
+  geom_point(color = "blue") +
+  labs(title = "Total de Intensidad Media Diaria (IMD) por Año (AO)",
+       x = "Año (AO)",
+       y = "Total de IMD") 
+
 ```
+
+
 ```{r}
 imd_group <- IMD %>%
   mutate(imd_num = as.numeric(gsub(" ", "", imd))) %>%
@@ -187,15 +202,22 @@ imd_group <- IMD %>%
 
 
 
-```{r}
-
+```{r} 
 Est_cond_at %>%
   ggplot(aes(x = no2, y = o3)) +
-  geom_point(col = "red")
+  geom_point(color = "red") +
+  labs(title = "Relación entre NO2 y O3",
+       x = "Dióxido de Nitrógeno (NO2)",
+       y = "Ozono (O3)")
 
+# Relación entre NO2 y CO
 Est_cond_at %>%
   ggplot(aes(x = no2, y = co)) +
-  geom_point(col = "red")
+  geom_point(color = "red") +
+  labs(title = "Relación entre NO2 y CO",
+       x = "Dióxido de Nitrógeno (NO2)",
+       y = "Monóxido de Carbono (CO)")
+
 
 ```
 
@@ -203,9 +225,12 @@ Est_cond_at %>%
 names(Silla) <- c("Fecha","PM2.5","Xileno", "SO2",
                   "CO","NO","NO2","PM10","NOx","Ozono","Tolueno", 
                   "Benceno","Ruido")
+ 
 Silla %>%
   ggplot(aes(x = Fecha, y = NO2)) +
-  geom_line()
+  geom_line() +
+  labs(title = "Reducción de Polución de Dióxido de Nitrógeno en la Pista Silla esta decada",y = "Dióxido de Nitrógeno (NO2)")
+
 ```
 
 
