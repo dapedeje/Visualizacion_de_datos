@@ -71,7 +71,7 @@ ui <- fluidPage(
       )))
     ),
     tabPanel(
-      "Conatainación en zona concreta.",
+      "Contaminación en zona concreta.",
       h1("Contaminación de zonas de silla"),
       sidebarLayout(
         sidebarPanel(
