@@ -59,6 +59,7 @@ ui <- fluidPage(
           "compuesto",
           "Seleccione el compuesto a analizar",
           choices = c(
+            "IMD_media" = "IMD_media",
             "NO2_mean" = "NO2_mean",
             "O3_mean" = "O3_mean",
             "CO_mean" = "CO_mean"
