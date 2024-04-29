@@ -122,16 +122,22 @@ Est_cond_at %>%
   geom_bar(fill = c("#00008B", "#8B2323")) +
   labs(title = "Distribución de la Calidad del Aire",  x = "Calidad del Aire", y = "Numero de Estaciones ") 
 ```
+```{r}
 
+datos_inputados <- CONT %>%
+  mutate(across(where(is.numeric), ~if_else(is.na(.), mean(., na.rm = TRUE), .)))
+```
 
 ```{r}
 columnas <- c("NO","NO2","NOx","O3","SO2","CO","NH3","C7H8")
-CONT %>%
+datos_inputados %>%
   pivot_longer(cols = columnas, names_to = "Variable", values_to = "Valor" ) %>%
   ggplot(aes(x = Estacion, y = Valor, fill = Variable)) +
   geom_bar(stat = "identity", fun = "sum", position = "dodge") +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
   labs(title = "Contaminación por Elemento y Estación",fill = "Elemento")
+
+ggsave("Plots/Barras.png")
 ```
 
 ```{r}
@@ -144,11 +150,7 @@ CONT %>%
   
 ```
 
-```{r}
-datos_inputados <- CONT %>%
-  mutate(across(where(is.numeric), ~if_else(is.na(.), mean(., na.rm = TRUE), .)))
 
-```
 
 Podemos ver que ha hemos tenido cerca de las zonas verdes una tendecia a que poco a poco esta bajando:
 
